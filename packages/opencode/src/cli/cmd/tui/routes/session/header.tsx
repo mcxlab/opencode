@@ -51,10 +51,31 @@ export function Header() {
     const total =
       last.tokens.input + last.tokens.output + last.tokens.reasoning + last.tokens.cache.read + last.tokens.cache.write
     const model = sync.data.provider.find((x) => x.id === last.providerID)?.models[last.modelID]
+
+    // Calculate latency and tokens/sec
+    const latencyMs = last.time.completed ? last.time.completed - last.time.created : 0
+    const latencySec = latencyMs / 1000
+    const tokensPerSec = latencySec > 0 ? Math.round(last.tokens.output / latencySec) : 0
+
     let result = total.toLocaleString()
+
+    // Add max tokens and percentage
     if (model?.limit.context) {
-      result += "/" + Math.round((total / model.limit.context) * 100) + "%"
+      result += `/${model.limit.context.toLocaleString()} (${Math.round((total / model.limit.context) * 100)}%)`
+    } else {
+      result += ` tokens`
     }
+
+    // Add detailed breakdown
+    result += ` [${last.tokens.input.toLocaleString()}↓/${last.tokens.output.toLocaleString()}↑`
+    if (last.tokens.cache.read > 0) {
+      result += ` ${last.tokens.cache.read.toLocaleString()}⚡`
+    }
+    if (tokensPerSec > 0) {
+      result += ` ${tokensPerSec}t/s`
+    }
+    result += `]`
+
     return result
   })
 

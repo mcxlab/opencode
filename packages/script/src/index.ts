@@ -17,7 +17,7 @@ const CHANNEL = process.env["OPENCODE_CHANNEL"] ?? (await $`git branch --show-cu
 const IS_PREVIEW = CHANNEL !== "latest"
 const VERSION = await (async () => {
   if (process.env["OPENCODE_VERSION"]) return process.env["OPENCODE_VERSION"]
-  if (IS_PREVIEW) return `0.0.0-${CHANNEL}-${new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "")}`
+  if (IS_PREVIEW) return `0.0.0-${CHANNEL}-${new Date().toISOString().slice(0, 19).replace(/[-:T]/g, "")}-mcdev`
   const version = await fetch("https://registry.npmjs.org/opencode-ai/latest")
     .then((res) => {
       if (!res.ok) throw new Error(res.statusText)
@@ -26,9 +26,9 @@ const VERSION = await (async () => {
     .then((data: any) => data.version)
   const [major, minor, patch] = version.split(".").map((x: string) => Number(x) || 0)
   const t = process.env["OPENCODE_BUMP"]?.toLowerCase()
-  if (t === "major") return `${major + 1}.0.0`
-  if (t === "minor") return `${major}.${minor + 1}.0`
-  return `${major}.${minor}.${patch + 1}`
+  if (t === "major") return `${major + 1}.0.0-mcdev`
+  if (t === "minor") return `${major}.${minor + 1}.0-mcdev`
+  return `${major}.${minor}.${patch + 1}-mcdev`
 })()
 
 export const Script = {

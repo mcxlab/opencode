@@ -29,12 +29,27 @@ export function Sidebar(props: { sessionID: string }) {
   const context = createMemo(() => {
     const last = messages().findLast((x) => x.role === "assistant" && x.tokens.output > 0) as AssistantMessage
     if (!last) return
+
     const total =
       last.tokens.input + last.tokens.output + last.tokens.reasoning + last.tokens.cache.read + last.tokens.cache.write
     const model = sync.data.provider.find((x) => x.id === last.providerID)?.models[last.modelID]
+
+    // Calculate latency and tokens/sec
+    const latencyMs = last.time.completed ? last.time.completed - last.time.created : 0
+    const latencySec = latencyMs / 1000
+    const tokensPerSec = latencySec > 0 ? Math.round(last.tokens.output / latencySec) : 0
+
     return {
       tokens: total.toLocaleString(),
+      maxTokens: model?.limit.context?.toLocaleString() ?? "Unknown",
       percentage: model?.limit.context ? Math.round((total / model.limit.context) * 100) : null,
+      input: last.tokens.input.toLocaleString(),
+      output: last.tokens.output.toLocaleString(),
+      reasoning: last.tokens.reasoning.toLocaleString(),
+      cacheRead: last.tokens.cache.read.toLocaleString(),
+      cacheWrite: last.tokens.cache.write.toLocaleString(),
+      latency: latencySec.toFixed(2),
+      tokensPerSec: tokensPerSec.toLocaleString(),
     }
   })
 
@@ -54,10 +69,29 @@ export function Sidebar(props: { sessionID: string }) {
             <text fg={theme.text}>
               <b>Context</b>
             </text>
-            <text fg={theme.textMuted}>{context()?.tokens ?? 0} tokens</text>
-            <text fg={theme.textMuted}>{context()?.percentage ?? 0}% used</text>
+            <text fg={theme.textMuted}>
+              {context()?.tokens ?? 0} / {context()?.maxTokens ?? "?"} tokens ({context()?.percentage ?? 0}% used)
+            </text>
+            <text fg={theme.textMuted}>In: {context()?.input ?? 0} | Out: {context()?.output ?? 0}</text>
+            <Show when={(context()?.reasoning ?? "0") !== "0"}>
+              <text fg={theme.textMuted}>Reasoning: {context()?.reasoning ?? 0}</text>
+            </Show>
+            <Show when={(context()?.cacheRead ?? "0") !== "0" || (context()?.cacheWrite ?? "0") !== "0"}>
+              <text fg={theme.textMuted}>
+                Cache: {context()?.cacheRead ?? 0} read / {context()?.cacheWrite ?? 0} write
+              </text>
+            </Show>
             <text fg={theme.textMuted}>{cost()} spent</text>
           </box>
+          <Show when={context()?.latency !== "0.00"}>
+            <box>
+              <text fg={theme.text}>
+                <b>Performance</b>
+              </text>
+              <text fg={theme.textMuted}>Latency: {context()?.latency ?? 0}s</text>
+              <text fg={theme.textMuted}>Speed: {context()?.tokensPerSec ?? 0} tok/s</text>
+            </box>
+          </Show>
           <Show when={Object.keys(sync.data.mcp).length > 0}>
             <box>
               <box flexDirection="row" gap={1} onMouseDown={() => setMcpExpanded(!mcpExpanded())}>

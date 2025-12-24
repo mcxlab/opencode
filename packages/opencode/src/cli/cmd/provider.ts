@@ -9,16 +9,19 @@ import { Filesystem } from "../../util/filesystem"
 /**
  * Test connection to a provider endpoint
  */
-async function testConnection(baseURL: string, modelId?: string): Promise<{
+async function testConnection(
+  baseURL: string,
+  modelId?: string,
+): Promise<{
   success: boolean
   models?: string[]
   error?: string
 }> {
   try {
-    const url = baseURL.endsWith('/v1') ? `${baseURL}/models` : `${baseURL}/v1/models`
+    const url = baseURL.endsWith("/v1") ? `${baseURL}/models` : `${baseURL}/v1/models`
     const response = await fetch(url, {
-      method: 'GET',
-      signal: AbortSignal.timeout(5000)
+      method: "GET",
+      signal: AbortSignal.timeout(5000),
     })
 
     if (!response.ok) {
@@ -37,15 +40,15 @@ async function testConnection(baseURL: string, modelId?: string): Promise<{
 /**
  * Discover available models from endpoint
  */
-async function discoverModels(baseURL: string): Promise<Array<{ id: string, name: string }>> {
+async function discoverModels(baseURL: string): Promise<Array<{ id: string; name: string }>> {
   try {
-    const url = baseURL.endsWith('/v1') ? `${baseURL}/models` : `${baseURL}/v1/models`
+    const url = baseURL.endsWith("/v1") ? `${baseURL}/models` : `${baseURL}/v1/models`
     const spinner = prompts.spinner()
     spinner.start("Fetching available models...")
 
     const response = await fetch(url, {
-      method: 'GET',
-      signal: AbortSignal.timeout(5000)
+      method: "GET",
+      signal: AbortSignal.timeout(5000),
     })
 
     if (!response.ok) {
@@ -54,10 +57,11 @@ async function discoverModels(baseURL: string): Promise<Array<{ id: string, name
     }
 
     const data = await response.json()
-    const models = data.data?.map((m: any) => ({
-      id: m.id,
-      name: m.id.split('/').pop()?.split(':')[0] || m.id
-    })) || []
+    const models =
+      data.data?.map((m: any) => ({
+        id: m.id,
+        name: m.id.split("/").pop()?.split(":")[0] || m.id,
+      })) || []
 
     spinner.stop(`Found ${models.length} model(s)`)
     return models
@@ -248,7 +252,7 @@ export const ProviderAddCommand = cmd({
       if (availableModels.length > 0) {
         const selectedModels = await prompts.multiselect({
           message: "Select models to add:",
-          options: availableModels.map(m => ({
+          options: availableModels.map((m) => ({
             label: m.id,
             value: m.id,
             hint: m.name,
@@ -259,10 +263,10 @@ export const ProviderAddCommand = cmd({
 
         // Add selected models
         for (const modelFullId of selectedModels) {
-          const modelKey = String(modelFullId).split('/').pop()?.split(':')[0] || String(modelFullId)
+          const modelKey = String(modelFullId).split("/").pop()?.split(":")[0] || String(modelFullId)
           models[modelKey] = {
             id: modelFullId,
-            name: modelKey.charAt(0).toUpperCase() + modelKey.slice(1).replace(/-/g, ' '),
+            name: modelKey.charAt(0).toUpperCase() + modelKey.slice(1).replace(/-/g, " "),
           }
         }
       } else {
@@ -375,7 +379,9 @@ export const ProviderAddCommand = cmd({
         if (testResult.models.includes(modelId)) {
           console.log(`  ${UI.Style.TEXT_SUCCESS}✓${UI.Style.TEXT_NORMAL} ${key} ${UI.Style.TEXT_DIM}(available)`)
         } else {
-          console.log(`  ${UI.Style.TEXT_WARNING}⚠${UI.Style.TEXT_NORMAL} ${key} ${UI.Style.TEXT_DIM}(not found on server)`)
+          console.log(
+            `  ${UI.Style.TEXT_WARNING}⚠${UI.Style.TEXT_NORMAL} ${key} ${UI.Style.TEXT_DIM}(not found on server)`,
+          )
         }
       }
     }
@@ -384,7 +390,9 @@ export const ProviderAddCommand = cmd({
     UI.empty()
     prompts.log.step("Test your provider:")
     const firstModel = Object.keys(models)[0]
-    console.log(`  ${UI.Style.TEXT_HIGHLIGHT}opencode run --model ${providerID}/${firstModel} "Hello, world!"${UI.Style.TEXT_NORMAL}`)
+    console.log(
+      `  ${UI.Style.TEXT_HIGHLIGHT}opencode run --model ${providerID}/${firstModel} "Hello, world!"${UI.Style.TEXT_NORMAL}`,
+    )
     UI.empty()
     prompts.log.step("List all providers:")
     console.log(`  ${UI.Style.TEXT_HIGHLIGHT}opencode provider list${UI.Style.TEXT_NORMAL}`)
@@ -493,7 +501,7 @@ export const ProviderDoctorCommand = cmd({
       for (const [providerID, provider] of Object.entries(config.provider as Record<string, any>)) {
         const name = provider.name || providerID
         console.log(`${UI.Style.TEXT_NORMAL_BOLD}${name}${UI.Style.TEXT_NORMAL} ${UI.Style.TEXT_DIM}(${providerID})`)
-        console.log(`  URL: ${provider.options?.baseURL || 'N/A'}`)
+        console.log(`  URL: ${provider.options?.baseURL || "N/A"}`)
 
         // Test connection
         const testResult = await testConnection(provider.options?.baseURL)
@@ -510,12 +518,18 @@ export const ProviderDoctorCommand = cmd({
           for (const [key, model] of Object.entries(models)) {
             const modelId = (model as any).id || key
             if (testResult.models?.includes(modelId)) {
-              console.log(`    ${UI.Style.TEXT_SUCCESS}✓${UI.Style.TEXT_NORMAL} ${key} ${UI.Style.TEXT_DIM}(${modelId})`)
+              console.log(
+                `    ${UI.Style.TEXT_SUCCESS}✓${UI.Style.TEXT_NORMAL} ${key} ${UI.Style.TEXT_DIM}(${modelId})`,
+              )
             } else {
-              console.log(`    ${UI.Style.TEXT_WARNING}⚠${UI.Style.TEXT_NORMAL} ${key} ${UI.Style.TEXT_DIM}not found on server`)
+              console.log(
+                `    ${UI.Style.TEXT_WARNING}⚠${UI.Style.TEXT_NORMAL} ${key} ${UI.Style.TEXT_DIM}not found on server`,
+              )
               console.log(`      ${UI.Style.TEXT_DIM}Expected: ${modelId}`)
               if (testResult.models && testResult.models.length > 0) {
-                console.log(`      ${UI.Style.TEXT_DIM}Available: ${testResult.models.slice(0, 3).join(', ')}${testResult.models.length > 3 ? '...' : ''}`)
+                console.log(
+                  `      ${UI.Style.TEXT_DIM}Available: ${testResult.models.slice(0, 3).join(", ")}${testResult.models.length > 3 ? "..." : ""}`,
+                )
               }
             }
           }

@@ -72,7 +72,9 @@ export function Sidebar(props: { sessionID: string }) {
             <text fg={theme.textMuted}>
               {context()?.tokens ?? 0} / {context()?.maxTokens ?? "?"} tokens ({context()?.percentage ?? 0}% used)
             </text>
-            <text fg={theme.textMuted}>In: {context()?.input ?? 0} | Out: {context()?.output ?? 0}</text>
+            <text fg={theme.textMuted}>
+              In: {context()?.input ?? 0} | Out: {context()?.output ?? 0}
+            </text>
             <Show when={(context()?.reasoning ?? "0") !== "0"}>
               <text fg={theme.textMuted}>Reasoning: {context()?.reasoning ?? 0}</text>
             </Show>

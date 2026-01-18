@@ -6,6 +6,8 @@ node_modules
 .idea
 .vscode
 *~
+openapi.json
+opencode.json
 playground
 tmp
 dist

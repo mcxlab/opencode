@@ -8,6 +8,7 @@ import { AgentCommand } from "./cli/cmd/agent"
 import { UpgradeCommand } from "./cli/cmd/upgrade"
 import { UninstallCommand } from "./cli/cmd/uninstall"
 import { ModelsCommand } from "./cli/cmd/models"
+import { ProviderCommand } from "./cli/cmd/provider"
 import { UI } from "./cli/ui"
 import { Installation } from "./installation"
 import { NamedError } from "@opencode-ai/util/error"
@@ -86,6 +87,7 @@ const cli = yargs(hideBin(process.argv))
   .command(DebugCommand)
   .command(AuthCommand)
   .command(AgentCommand)
+  .command(ProviderCommand)
   .command(UpgradeCommand)
   .command(UninstallCommand)
   .command(ServeCommand)
